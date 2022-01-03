@@ -8,16 +8,12 @@ const _ = require('lodash')
 const axios = require('axios')
 const log = require('debug')('dashboard:repos/DockerApi')
 
-/**
- * docker host 的基本路徑
- */
-const DOCKER_BASEURL = _.get(process.env, ['DOCKER_BASEURL'], 'http://unix:/var/run/docker.sock:')
-
 exports.getAllClientSshPorts = async () => {
-  const containers = await axios.get(`${DOCKER_BASEURL}/v1.24/containers/json`, {
+  const containers = _.get(await axios.get('/v1.24/containers/json', {
     headers: { Host: 'localhost' },
     params: { filters: '{"label":["role=git-it-client"]}' },
-  })
+    socketPath: '/var/run/docker.sock',
+  }), 'data')
   if (!_.isArray(containers)) {
     log(containers)
     return

@@ -1,4 +1,5 @@
 const _ = require('lodash')
+const { parseJsonOrDefault } = require('../libs/helper')
 const redis = require('../redis')
 
 const problemNames = _.fromPairs(_.map([
@@ -21,7 +22,7 @@ const problemNames = _.fromPairs(_.map([
  */
 exports.all = async () => {
   const userMids = await redis.smembers('user_mids')
-  const users = await Promise.all(_.map(userMids, async userMid => {
+  const users = _.compact(await Promise.all(_.map(userMids, async userMid => {
     const user = await redis.hgetall('user:' + userMid)
     if (!user) return
     return {
@@ -32,9 +33,9 @@ exports.all = async () => {
       name: null,
       owned: '0',
       port: null,
-      ...user,
+      ..._.mapValues(user, v => parseJsonOrDefault(v, v)),
     }
-  }))
+  })))
   return _.orderBy(_.filter(users), ['completed.length', 'port'], ['desc', 'asc'])
 }
 
@@ -51,17 +52,9 @@ exports.debouncePublish = _.debounce(() => redis.publish('dashboard', 1), 300)
 exports.update = async user => {
   if (!_.isObject(user) || _.isNil(user.mid)) return
 
-  // transform completed
-  if (_.has(user, ['completed'])) {
-    let completed = JSON.parse(user.completed)
-    completed = _.map(completed, problemName => _.get(problemNames, problemName))
-    user.completed = JSON.stringify(completed)
-  }
-
-  if (_.has(user, ['current'])) {
-    user.current = JSON.parse(user.current)
-    user.current = _.get(problemNames, user.current)
-  }
+  user = _.mapValues(user, v => parseJsonOrDefault(v, v))
+  _.update(user, 'completed', oldVal => _.map(oldVal, problemName => _.get(problemNames, problemName)))
+  _.update(user, 'current', oldVal => _.get(problemNames, oldVal))
 
   user = _.pick(user, [
     'completed',
@@ -74,7 +67,7 @@ exports.update = async user => {
   ])
 
   await redis.pipeline()
-    .hmset('user:' + user.mid, user)
+    .hmset('user:' + user.mid, _.mapValues(user, v => JSON.stringify(v)))
     .sadd('user_mids', user.mid)
     .exec()
 

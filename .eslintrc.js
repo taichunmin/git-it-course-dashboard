@@ -11,11 +11,10 @@ module.exports = {
     SharedArrayBuffer: 'readonly',
   },
   parserOptions: {
-    ecmaVersion: 2018,
+    ecmaVersion: 2020,
     sourceType: 'module',
   },
   rules: {
-    'multiline-ternary': 0, // 0 = off, 1 = warn, 2 = error
     'no-return-await': 0, // 0 = off, 1 = warn, 2 = error
     'comma-dangle': ['error', {
       arrays: 'always-multiline',

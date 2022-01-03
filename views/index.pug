@@ -36,7 +36,7 @@ block content
     code ssh root@{{ domain }} -p [port]
 
 block script
-  script(src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js")
+  script(src="https://cdn.jsdelivr.net/npm/socket.io-client@4/dist/socket.io.min.js")
   if env.NODE_ENV === 'development'
     script localStorage.debug = 'socket.io-client:socket'
   script.
@@ -55,7 +55,7 @@ block script
     socket.on('pongtest', () => {
       console.log('pongtest')
     })
-    
+
     const vm = new Vue({
       el: '#app',
       data: {
@@ -75,7 +75,7 @@ block script
         setInterval(() => { this.now = moment() }, 1000)
       },
     })
-    
+
     socket.on('dashboard', dashboard => {
       vm.users = dashboard
       vm.updateAt = moment()

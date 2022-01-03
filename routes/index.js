@@ -3,6 +3,7 @@ const router = express.Router()
 const UserRepo = require('../repos/UserRepo')
 const DockerApi = require('../repos/DockerApi')
 const log = require('debug')('dashboard:route/index')
+const { errToPlainObj } = require('../libs/helper')
 
 const problems = [
   'GET GIT',
@@ -38,6 +39,7 @@ router.post('/completed/update', async (req, res, next) => {
     }
     res.json({ result: 'OK' })
   } catch (err) {
+    log('/completed/update %j', errToPlainObj(err))
     next(err)
   }
 })
